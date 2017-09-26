@@ -13,7 +13,7 @@ const util      = require('./bin/util.js');
 module.exports = class {
 
   constructor(dbLocation /* the folder to contain the json databases(relative path) */) {
-    this.baseDir = path.resolve(__dirname, dbLocation);
+    this.baseDir = path.resolve(process.cwd(), dbLocation);
     this.fileLock = {};
   }
 
