@@ -60,3 +60,4 @@ typings/
 # My ignores
 .tern-project
 *.local.*
+*_local/
