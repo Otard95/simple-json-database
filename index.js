@@ -241,7 +241,7 @@ module.exports = class {
     // get the database
     var dbContent = JSON.parse(fs.readFileSync(file, 'utf8'));
 
-    // make sure tabe doesn't allready exist
+    // make sure tabe exist
     var table = dbContent[tableName];
     if (!table) {
       return {status: false, val: 'Tabe doesn\'t exists.'};
