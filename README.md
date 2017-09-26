@@ -11,7 +11,7 @@ npm install github:Otard95/simple_json_database
 ```javascript
 const db = require('simple_json_database')('<database_folder>');
 ```
-Where `<database_folder>` is the relative path to the containing folder for your databases.
+Where `<database_folder>` is the relative path to the containing folder for your databases.  
 **Examples:**
 * `'JsonDB'` -- Will create(if not allready existing) a folder `JsonDB` in your projects directory.
 * `'./'` -- Will save you databases directly in your projects directory.
@@ -38,8 +38,8 @@ db.execute('createTable', 'myDatabase', 'myTable'[, <obj>]).then( (res) => {
   // Your code if you need it
 });
 ```
-Creates a new table in `myDatabase` called `myTable`.
-If `<obj>` is specified, any elements added to this tabel will need to have the same structure.
+Creates a new table in `myDatabase` called `myTable`.  
+If `<obj>` is specified, any elements added to this tabel will need to have the same structure.  
 **Example:**
 ```javascript
 let template = {
