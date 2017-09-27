@@ -23,7 +23,7 @@ module.exports = class {
     /*
      *  ### We'd like to store our databases in its own folder so make sure it exists
      */
-    var exists = fs.existsSync(this.baseDir);
+    let exists = fs.existsSync(this.baseDir);
     if (!exists) { // Create it
       fs.mkdirSync(this.baseDir);
 
@@ -46,7 +46,7 @@ module.exports = class {
 
   // return a bool depending on if the file is locked
   isLocked (db) {
-    var isLocked = this.fileLock.hasOwnProperty(db);
+    let isLocked = this.fileLock.hasOwnProperty(db);
     if (isLocked) return true;
     return false;
   }
@@ -79,16 +79,16 @@ module.exports = class {
     return new Promise((resolve, reject) => {
 
       // make sure the json doesn't allready exist
-      var file = path.resolve(this.baseDir, name + '.json');
-      var exists = fs.existsSync(file);
+      let file = path.resolve(this.baseDir, name + '.json');
+      let exists = fs.existsSync(file);
       if (exists) {
         reject('There is already a record of this databases');
         return;
       }
 
       // set up data and options
-      var data = '{\n\n}';
-      var options = {};
+      let data = '{\n\n}';
+      let options = {};
       options.flag = 'wx';
 
       // create the new db
@@ -105,16 +105,16 @@ module.exports = class {
   //
   execute (opperation, db, tabel, obj) {
 
-    var file = path.resolve(this.baseDir, db + '.json'); // db file
+    let file = path.resolve(this.baseDir, db + '.json'); // db file
 
     // The job that is the executor of the promise that is to be returned
-    var job = (resolve, reject) => {
+    let job = (resolve, reject) => {
 
       setTimeout(()=>{ // We use a timeout just to give the caller
                        // those fractions of a ms to return the promises
 
         // find and complete opperation
-        var ret;
+        let ret;
         switch (opperation) {
           case 'createTable':
             ret = this._createTable(db, tabel, obj);
@@ -148,10 +148,10 @@ module.exports = class {
       // the file is allready locked
       // add job to be done on locked file
 
-      var jobsLength = this.fileLock[db].jobs.length;
-      var lastJob = this.fileLock[db].jobs[jobsLength-1];
+      let jobsLength = this.fileLock[db].jobs.length;
+      let lastJob = this.fileLock[db].jobs[jobsLength-1];
 
-      var p = new Promise((resolve, reject) => {
+      let p = new Promise((resolve, reject) => {
 
         lastJob.then((ret) => {
 
@@ -193,14 +193,12 @@ module.exports = class {
   // Synchronous opperation on locked database(.json)
   // this will atempt to crate a new table in a database
   _createTable (db, tableName, template) {
-    //                 all ok   error    resolve  reject
-    //                     V      V           V    V
-    // returns {status: [true | false], val: msg/reson}
+    ///  return a Response object
 
-    var file = path.resolve(this.baseDir, db + '.json');
+    let file = path.resolve(this.baseDir, db + '.json');
 
     // make sure database(.json) exists
-    var exists = fs.existsSync(file);
+    let exists = fs.existsSync(file);
     if (!exists) {
       return new Response(this.codes.U_DATABASE_NOT_FOUND,
                           '"'+ file +'" doesn\'t exits.\n'+console.trace(''),
@@ -208,10 +206,10 @@ module.exports = class {
     }
 
     // get the database
-    var dbContent = JSON.parse(fs.readFileSync(file, 'utf8'));
+    let dbContent = JSON.parse(fs.readFileSync(file, 'utf8'));
 
     // make sure tabe doesn't allready exist
-    var table = dbContent[tableName];
+    let table = dbContent[tableName];
     if (table) {
       return new Response(this.codes.U_TABLE_ALLREADY_EXISTS,
                           'Table \''+tableName+'\' allready exits.\n'+console.trace(''),
@@ -222,7 +220,7 @@ module.exports = class {
     dbContent[tableName] = new Table(template);
 
     // save to file
-    var data = JSON.stringify(dbContent);
+    let data = JSON.stringify(dbContent);
 
     fs.writeFileSync(file, data);
 
@@ -234,14 +232,12 @@ module.exports = class {
   // Synchronous opperation on locked database(.json)
   // this will atempt to insert an object into the database
   _insert (db, tableName, obj) {
-    //                 all ok   error    resolve  reject
-    //                     V      V           V    V
-    // returns {status: [true | false], val: msg/reson}
+    //  return a Response object
 
-    var file = path.resolve(this.baseDir, db + '.json');
+    let file = path.resolve(this.baseDir, db + '.json');
 
     // make sure database(.json) exists
-    var exists = fs.existsSync(file);
+    let exists = fs.existsSync(file);
     if (!exists) {
       return new Response(db.codes.U_DATABASE_NOT_FOUND,
                           '"'+file+'" doesn\'t exist.\n'+console.trace(''),
@@ -249,10 +245,10 @@ module.exports = class {
     }
 
     // get the database
-    var dbContent = JSON.parse(fs.readFileSync(file, 'utf8'));
+    let dbContent = JSON.parse(fs.readFileSync(file, 'utf8'));
 
     // make sure tabe exist
-    var table = dbContent[tableName];
+    let table = dbContent[tableName];
     if (!table) {
       return new Response(this.codes.U_TABLE_NOT_FOUND,
                           'Table \''+tableName+'\' doesn\'t exits.\n'+console.trace(''),
@@ -262,7 +258,7 @@ module.exports = class {
     // if there is a specified template make sure obj confoms
     if (table.template) {
       // clone template as it will be destroyed
-      var clone = JSON.parse(JSON.stringify(table.template));
+      let clone = JSON.parse(JSON.stringify(table.template));
       if (util.matchTemplate(obj, clone)) {
         return new Response(db.codes.U_TAEMPLATE_MISMATCH,
                             'Template mismatch.\n'+console.trace(''),
@@ -273,7 +269,7 @@ module.exports = class {
 
     // if obj has equals check to make sure its not equal to any other of the objects
     if (obj.hasOwnProperty('equals')) {
-      for (var i = 0; i < table.rows.length; i++) {
+      for (let i = 0; i < table.rows.length; i++) {
         try {
 
           if (obj.equals(obj, table.rows[i])) {
@@ -293,13 +289,41 @@ module.exports = class {
     table.rows.push(obj);
 
     // save to file
-    var data = JSON.stringify(dbContent);
+    let data = JSON.stringify(dbContent);
 
     fs.writeFileSync(file, data);
 
     return new Response(db.codes.OK,
                         'New row inserted into table \''+tableName+'\' in the database "'+file+'"',
                         'New row inserted into table.');
+  }
+
+  _select (db, tableName, selector) {
+    //  return a Response object
+
+    let file = path.resolve(this.baseDir, db + '.json');
+
+    // make sure database(.json) exists
+    let exists = fs.existsSync(file);
+    if (!exists) {
+      return new Response(db.codes.U_DATABASE_NOT_FOUND,
+                          '"'+file+'" doesn\'t exist.\n'+console.trace(''),
+                          'No database with that name.');
+    }
+
+    // get the database
+    let dbContent = JSON.parse(fs.readFileSync(file, 'utf8'));
+
+    // make sure tabe exist
+    let table = dbContent[tableName];
+    if (!table) {
+      return new Response(this.codes.U_TABLE_NOT_FOUND,
+                          'Table \''+tableName+'\' doesn\'t exits.\n'+console.trace(''),
+                          'No table with that name found');
+    }
+
+    // Continue
+
   }
 
 };
