@@ -9,12 +9,14 @@ const path      = require('path');
 const FileLock  = require('./bin/fileLock.js');
 const Table     = require('./bin/table.js');
 const util      = require('./bin/util.js');
+const Response  = require('./bin/response.js');
 
 module.exports = class {
 
   constructor(dbLocation /* the folder to contain the json databases(relative path) */) {
     this.baseDir = path.resolve(process.cwd(), dbLocation);
     this.fileLock = {};
+    this.codes = require('./bin/status_codes.js');
   }
 
   init () {
@@ -126,9 +128,9 @@ module.exports = class {
 
         // resolve or reject
         if (ret.status) {
-          resolve(ret.val);
+          resolve(ret);
         } else {
-          reject(ret.val);
+          reject(ret);
         }
 
         // remove this job from jobs
@@ -178,7 +180,7 @@ module.exports = class {
 
       } else { // The database(.json) could for some reason be locked
         return new Promise((resolve, reject)=>{
-          reject('Could not lock db');
+          reject(new Response(db.codes.DB_L_ERR, '', 'Unable to lock database. Could not continue'));
         });
       }
     } // END if else
@@ -200,7 +202,9 @@ module.exports = class {
     // make sure database(.json) exists
     var exists = fs.existsSync(file);
     if (!exists) {
-      return {status: false, val: 'There is no database with that name.'};
+      return new Response(this.codes.U_DATABASE_NOT_FOUND,
+                          '"'+ file +'" doesn\'t exits.\n'+console.trace(''),
+                          'No database with that name.');
     }
 
     // get the database
@@ -209,7 +213,9 @@ module.exports = class {
     // make sure tabe doesn't allready exist
     var table = dbContent[tableName];
     if (table) {
-      return {status: false, val: 'Tabe allready exists.'};
+      return new Response(this.codes.U_TABLE_ALLREADY_EXISTS,
+                          'Table \''+tableName+'\' allready exits.\n'+console.trace(''),
+                          'Table allready exists');
     }
 
     // create the table
@@ -220,7 +226,9 @@ module.exports = class {
 
     fs.writeFileSync(file, data);
 
-    return {status: true, val: 'Table \''+ tableName +'\' created.'};
+    return new Response(db.codes.OK,
+                        'New table \''+tableName+'\' created in \''+db+'\'("'+file+'")',
+                        'Table created.');
   }
 
   // Synchronous opperation on locked database(.json)
@@ -235,7 +243,9 @@ module.exports = class {
     // make sure database(.json) exists
     var exists = fs.existsSync(file);
     if (!exists) {
-      return {status: false, val: 'There is no database with that name.'};
+      return new Response(db.codes.U_DATABASE_NOT_FOUND,
+                          '"'+file+'" doesn\'t exist.\n'+console.trace(''),
+                          'No database with that name.');
     }
 
     // get the database
@@ -244,7 +254,9 @@ module.exports = class {
     // make sure tabe exist
     var table = dbContent[tableName];
     if (!table) {
-      return {status: false, val: 'Tabe doesn\'t exists.'};
+      return new Response(this.codes.U_TABLE_NOT_FOUND,
+                          'Table \''+tableName+'\' doesn\'t exits.\n'+console.trace(''),
+                          'No table with that name found');
     }
 
     // if there is a specified template make sure obj confoms
@@ -252,15 +264,28 @@ module.exports = class {
       // clone template as it will be destroyed
       var clone = JSON.parse(JSON.stringify(table.template));
       if (util.matchTemplate(obj, clone)) {
-        return {status: false, val: 'Object doesn\'t confom to the template'};
+        return new Response(db.codes.U_TAEMPLATE_MISMATCH,
+                            'Template mismatch.\n'+console.trace(''),
+                            'The object you want to insert does not match '+
+                            'the template specified for this table');
       }
     }
 
     // if obj has equals check to make sure its not equal to any other of the objects
     if (obj.hasOwnProperty('equals')) {
       for (var i = 0; i < table.rows.length; i++) {
-        if (obj.equals(obj, table.rows[i])) {
-          return {status: false, val: 'Duplicate of existing row.'};
+        try {
+
+          if (obj.equals(obj, table.rows[i])) {
+            return new Response(db.codes.U_ROW_DUPLICATE,
+                                'The input value is a duplicate of an existing row.\n'+console.trace(''),
+                                'An identical row allready exists.');
+          }
+
+        } catch (e) {
+          return new Response(db.codes.U_EQUALS_METHUD_ERR,
+                              'Error in obj.equals().\n'+e,
+                              'There seems to be somthing worong with your equals methud.');
         }
       }
     }
@@ -272,7 +297,9 @@ module.exports = class {
 
     fs.writeFileSync(file, data);
 
-    return {status: true, val: 'Inserted into table \''+ tableName +'\'.'};
+    return new Response(db.codes.OK,
+                        'New row inserted into table \''+tableName+'\' in the database "'+file+'"',
+                        'New row inserted into table.');
   }
 
 };
