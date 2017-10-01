@@ -298,8 +298,21 @@ module.exports = class {
                         'New row inserted into table.');
   }
 
+  // Synchronous opperation on locked database(.json)
+  // this will atempt to retrieve an object from a table in the database
   _select (db, tableName, selector) {
     //  return a Response object
+
+    // Check that selector is of valid type.
+    if (!(typeof selector == 'object' ||
+          typeof selector == 'function' ||
+          selector == undefined) ||
+          Array.isArray(selector)) {
+      return new Response(db.codes.U_INVALID_SELECTOR,
+                          'The selector was type: ' + Array.isArray(selector) ? 'array' : typeof selector +
+                          ', but expected: [<object> | <function> | <undefined>]\n' + console.trace(''),
+                          'Selector was wrong type.');
+    }
 
     let file = path.resolve(this.baseDir, db + '.json');
 
@@ -322,7 +335,38 @@ module.exports = class {
                           'No table with that name found');
     }
 
-    // Continue
+    // Select and return appropriate array
+    if (selector == undefined) { // no selector, return all rows
+      return new Response(db.codes.OK,
+                          'Returned all rows in table \''+tableName+'\'',
+                          'Returned all rows.',
+                          table.rows);
+    } else if (typeof selector == 'object') { //
+      let resource = table.rows.filter((el) => {
+        for (let key in selector) {
+          if (!el.hasOwnProperty(key)) return false;
+          if (el[key] != selector[key]) return false;
+        }
+        return true;
+      });
+      return new Response(db.codes.OK,
+                          'Returned rows matching the key-value set given.',
+                          'Returned matching rows.',
+                          resource);
+    } else {
+      let resource;
+      try {
+        resource = table.rows.filter(selector);
+        return new Response(db.codes.OK,
+                            'Returned rows matching the key-value set given.',
+                            'Returned matching rows.',
+                            resource);
+      } catch (e) {
+        return new Response(db.codes.U_INVALID_SELECTOR,
+                            'Error in selector function.\n'+e,
+                            'There seems to be somthing worong with your selector methud.');
+      }
+    }
 
   }
 

@@ -15,6 +15,7 @@ module.exports = {
   U_TAEMPLATE_MISMATCH:       105,
   U_EQUALS_METHUD_ERR:        106,
   U_ROW_DUPLICATE:            107,
+  U_INVALID_SELECTOR:         108,
 
   // Negative response, database error
   DB_READFILE_ERR:  201,
