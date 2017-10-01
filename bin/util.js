@@ -9,6 +9,7 @@ var util = {
   // Comapres two objects to see if they are equal in structure
   // it doesn't care what the values of the keys are only that they are the same type
   // THIS IS A DESTUCTIVE FUNCTION CLONE 'tem' IT GETS DESTROYED
+  // Returns false on mismatch and true on match
   matchTemplate: (obj, tem) => {
 
     for (var key in obj) { // for every key on obj

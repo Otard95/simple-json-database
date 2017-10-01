@@ -273,7 +273,7 @@ module.exports = class {
     if (table.template) {
       // clone template as it will be destroyed
       let clone = JSON.parse(JSON.stringify(table.template));
-      if (util.matchTemplate(obj, clone)) {
+      if (!util.matchTemplate(obj, clone)) {
         return new Response(this.codes.U_TAEMPLATE_MISMATCH,
                             'Template mismatch.\n'+new Error().stack,
                             'The object you want to insert does not match '+
