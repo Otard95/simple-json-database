@@ -82,7 +82,9 @@ module.exports = class {
       let file = path.resolve(this.baseDir, name + '.json');
       let exists = fs.existsSync(file);
       if (exists) {
-        reject('There is already a record of this databases');
+        reject(new Response(this.codes.U_DATABASE_ALLREADY_EXISTS,
+                            'The database you are trying to create allready exists\n'+new Error().stack,
+                            'The database allready exits.'));
         return;
       }
 
@@ -93,8 +95,15 @@ module.exports = class {
 
       // create the new db
       fs.writeFile(file, data, options, (err) => {
-        if (err) {reject(err); return;}
-        resolve('Created the database \'' + name + '\'');
+        if (err) {
+          reject(new Response(this.codes.DB_WRITEFILE_ERR,
+                              'Encountered an error whiles\'t trying to create the new database.\n'+err,
+                              'An error occurred when trying to create the database.'));
+          return;
+        }
+        resolve(new Response(this.codes.OK,
+                             'Database, \''+name+'\' successfully created.',
+                             'Database Created.'));
       });
     });
   }
