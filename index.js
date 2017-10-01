@@ -121,8 +121,14 @@ module.exports = class {
           case 'insert':
             ret = this._insert(db, tabel, obj);
             break;
+          case 'select':
+            ret = this._select(db, tabel, obj);
+            break;
+          case 'delete':
+            ret = this._delete(db, tabel, obj);
+            break;
           default:
-            throw 'There is no opperation \''+ opperation +'\'';
+            throw 'There is no opperation \''+ opperation +'\'.';
         }
 
         // resolve or reject
@@ -360,6 +366,77 @@ module.exports = class {
                             'Returned rows matching the key-value set given.',
                             'Returned matching rows.',
                             resource);
+      } catch (e) {
+        return new Response(this.codes.U_INVALID_SELECTOR,
+                            'Error in selector function.\n'+e,
+                            'There seems to be somthing worong with your selector methud.');
+      }
+    }
+
+  }
+
+  // Synchronous opperation on locked database(.json)
+  // this will atempt to retrieve an object from a table in the database
+  _delete (db, tableName, selector) {
+
+    // Check that selector is of valid type.
+    if (!(typeof selector == 'object' ||
+          typeof selector == 'function') ||
+          Array.isArray(selector)) {
+      return new Response(this.codes.U_INVALID_SELECTOR,
+                          'The selector was type: ' + Array.isArray(selector) ? 'array' : typeof selector +
+                          ', but expected: [<object> | <function>]\n' + new Error().stack,
+                          'Selector was wrong type.');
+    }
+
+    let file = path.resolve(this.baseDir, db + '.json');
+
+    // make sure database(.json) exists
+    let exists = fs.existsSync(file);
+    if (!exists) {
+      return new Response(this.codes.U_DATABASE_NOT_FOUND,
+                          '"'+file+'" doesn\'t exist.\n'+new Error().stack,
+                          'No database with that name.');
+    }
+
+    // get the database
+    let dbContent = JSON.parse(fs.readFileSync(file, 'utf8'));
+
+    // make sure tabe exist
+    let table = dbContent[tableName];
+    if (!table) {
+      return new Response(this.codes.U_TABLE_NOT_FOUND,
+                          'Table \''+tableName+'\' doesn\'t exits.\n'+new Error().stack,
+                          'No table with that name found');
+    }
+
+    // Select and return appropriate array
+    if (typeof selector == 'object') { // remove elements matching selector object
+      let deleted = [];
+      for (let i = table.rows.length; i >= 0; i--) {
+        let del = true;
+        for (let key in selector) {
+          if (!table.rows[i].hasOwnProperty(key)) {del = false; break;}
+          if (table.rows[i][key] != selector[key]) {del = false; break;}
+        }
+        if (del) deleted.concat(table.rows.splice(i,1));
+      }
+      return new Response(this.codes.OK,
+                          'Deleted elements matching provided object.',
+                          'Deleted matching rows.',
+                          deleted);
+    } else {
+      let resource;
+      try {
+        let deleted = [];
+        for (let i = table.rows.length; i >= 0; i--) {
+          let del = true;
+          if (selector(table.rows[i])) deleted.concat(table.rows.splice(i,1));
+        }
+        return new Response(this.codes.OK,
+                            'Deleted elements matching provided function.',
+                            'Deleted matching rows.',
+                            deleted);
       } catch (e) {
         return new Response(this.codes.U_INVALID_SELECTOR,
                             'Error in selector function.\n'+e,
