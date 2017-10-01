@@ -19,14 +19,18 @@ function testCreateDB () {
 
 function testTableDuplecate () {
   db.execute('createTable', 'testDB', 'testTable').then((res)=>{
-    console.log('Test Duplicate Table 1st table created');
+    console.log('\n\nTest Duplicate Table 1st table created | ', res);
   }).catch((err)=>{
-    console.log('Test Duplicate Table 1st table failed | ' + err);
+    console.log('\n\nTest Duplicate Table 1st table failed | ', err);
   });
 
   db.execute('createTable', 'testDB', 'testTable').then((res)=>{
-    console.log('Test Duplicate Table failed | ' + res);
+    console.log('\n\nTest Duplicate Table failed | ', res);
   }).catch((err)=>{
-    console.log('Test Duplicate Table passed | ' + err);
+    console.log('\n\nTest Duplicate Table passed | ', err);
   });
 }
+
+testCreateDB();
+
+setTimeout(testTableDuplecate, 1000);

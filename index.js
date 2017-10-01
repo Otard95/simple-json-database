@@ -96,7 +96,6 @@ module.exports = class {
         if (err) {reject(err); return;}
         resolve('Created the database \'' + name + '\'');
       });
-
     });
   }
 
@@ -127,7 +126,7 @@ module.exports = class {
         }
 
         // resolve or reject
-        if (ret.status) {
+        if (ret.statusCode == this.codes.OK) {
           resolve(ret);
         } else {
           reject(ret);
@@ -180,7 +179,7 @@ module.exports = class {
 
       } else { // The database(.json) could for some reason be locked
         return new Promise((resolve, reject)=>{
-          reject(new Response(db.codes.DB_L_ERR, '', 'Unable to lock database. Could not continue'));
+          reject(new Response(this.codes.DB_LOCKFILE_ERR, '', 'Unable to lock database. Could not continue'));
         });
       }
     } // END if else
@@ -201,7 +200,7 @@ module.exports = class {
     let exists = fs.existsSync(file);
     if (!exists) {
       return new Response(this.codes.U_DATABASE_NOT_FOUND,
-                          '"'+ file +'" doesn\'t exits.\n'+console.trace(''),
+                          '"'+ file +'" doesn\'t exits.\n'+new Error().stack,
                           'No database with that name.');
     }
 
@@ -212,7 +211,7 @@ module.exports = class {
     let table = dbContent[tableName];
     if (table) {
       return new Response(this.codes.U_TABLE_ALLREADY_EXISTS,
-                          'Table \''+tableName+'\' allready exits.\n'+console.trace(''),
+                          'Table \''+tableName+'\' allready exits.\n'+new Error().stack,
                           'Table allready exists');
     }
 
@@ -224,7 +223,7 @@ module.exports = class {
 
     fs.writeFileSync(file, data);
 
-    return new Response(db.codes.OK,
+    return new Response(this.codes.OK,
                         'New table \''+tableName+'\' created in \''+db+'\'("'+file+'")',
                         'Table created.');
   }
@@ -239,8 +238,8 @@ module.exports = class {
     // make sure database(.json) exists
     let exists = fs.existsSync(file);
     if (!exists) {
-      return new Response(db.codes.U_DATABASE_NOT_FOUND,
-                          '"'+file+'" doesn\'t exist.\n'+console.trace(''),
+      return new Response(this.codes.U_DATABASE_NOT_FOUND,
+                          '"'+file+'" doesn\'t exist.\n'+new Error().stack,
                           'No database with that name.');
     }
 
@@ -251,7 +250,7 @@ module.exports = class {
     let table = dbContent[tableName];
     if (!table) {
       return new Response(this.codes.U_TABLE_NOT_FOUND,
-                          'Table \''+tableName+'\' doesn\'t exits.\n'+console.trace(''),
+                          'Table \''+tableName+'\' doesn\'t exits.\n'+new Error().stack,
                           'No table with that name found');
     }
 
@@ -260,8 +259,8 @@ module.exports = class {
       // clone template as it will be destroyed
       let clone = JSON.parse(JSON.stringify(table.template));
       if (util.matchTemplate(obj, clone)) {
-        return new Response(db.codes.U_TAEMPLATE_MISMATCH,
-                            'Template mismatch.\n'+console.trace(''),
+        return new Response(this.codes.U_TAEMPLATE_MISMATCH,
+                            'Template mismatch.\n'+new Error().stack,
                             'The object you want to insert does not match '+
                             'the template specified for this table');
       }
@@ -273,13 +272,13 @@ module.exports = class {
         try {
 
           if (obj.equals(obj, table.rows[i])) {
-            return new Response(db.codes.U_ROW_DUPLICATE,
-                                'The input value is a duplicate of an existing row.\n'+console.trace(''),
+            return new Response(this.codes.U_ROW_DUPLICATE,
+                                'The input value is a duplicate of an existing row.\n'+new Error().stack,
                                 'An identical row allready exists.');
           }
 
         } catch (e) {
-          return new Response(db.codes.U_EQUALS_METHUD_ERR,
+          return new Response(this.codes.U_EQUALS_METHUD_ERR,
                               'Error in obj.equals().\n'+e,
                               'There seems to be somthing worong with your equals methud.');
         }
@@ -293,7 +292,7 @@ module.exports = class {
 
     fs.writeFileSync(file, data);
 
-    return new Response(db.codes.OK,
+    return new Response(this.codes.OK,
                         'New row inserted into table \''+tableName+'\' in the database "'+file+'"',
                         'New row inserted into table.');
   }
@@ -308,9 +307,9 @@ module.exports = class {
           typeof selector == 'function' ||
           selector == undefined) ||
           Array.isArray(selector)) {
-      return new Response(db.codes.U_INVALID_SELECTOR,
+      return new Response(this.codes.U_INVALID_SELECTOR,
                           'The selector was type: ' + Array.isArray(selector) ? 'array' : typeof selector +
-                          ', but expected: [<object> | <function> | <undefined>]\n' + console.trace(''),
+                          ', but expected: [<object> | <function> | <undefined>]\n' + new Error().stack,
                           'Selector was wrong type.');
     }
 
@@ -319,8 +318,8 @@ module.exports = class {
     // make sure database(.json) exists
     let exists = fs.existsSync(file);
     if (!exists) {
-      return new Response(db.codes.U_DATABASE_NOT_FOUND,
-                          '"'+file+'" doesn\'t exist.\n'+console.trace(''),
+      return new Response(this.codes.U_DATABASE_NOT_FOUND,
+                          '"'+file+'" doesn\'t exist.\n'+new Error().stack,
                           'No database with that name.');
     }
 
@@ -331,13 +330,13 @@ module.exports = class {
     let table = dbContent[tableName];
     if (!table) {
       return new Response(this.codes.U_TABLE_NOT_FOUND,
-                          'Table \''+tableName+'\' doesn\'t exits.\n'+console.trace(''),
+                          'Table \''+tableName+'\' doesn\'t exits.\n'+new Error().stack,
                           'No table with that name found');
     }
 
     // Select and return appropriate array
     if (selector == undefined) { // no selector, return all rows
-      return new Response(db.codes.OK,
+      return new Response(this.codes.OK,
                           'Returned all rows in table \''+tableName+'\'',
                           'Returned all rows.',
                           table.rows);
@@ -349,7 +348,7 @@ module.exports = class {
         }
         return true;
       });
-      return new Response(db.codes.OK,
+      return new Response(this.codes.OK,
                           'Returned rows matching the key-value set given.',
                           'Returned matching rows.',
                           resource);
@@ -357,12 +356,12 @@ module.exports = class {
       let resource;
       try {
         resource = table.rows.filter(selector);
-        return new Response(db.codes.OK,
+        return new Response(this.codes.OK,
                             'Returned rows matching the key-value set given.',
                             'Returned matching rows.',
                             resource);
       } catch (e) {
-        return new Response(db.codes.U_INVALID_SELECTOR,
+        return new Response(this.codes.U_INVALID_SELECTOR,
                             'Error in selector function.\n'+e,
                             'There seems to be somthing worong with your selector methud.');
       }
