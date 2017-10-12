@@ -9,7 +9,9 @@ npm install github:Otard95/simple_json_database
 ## How to use
 **Simple setup**
 ```javascript
-const db = require('simple_json_database')('<database_folder>');
+const sJsonDb = require('simple_json_database');
+const db      = sJsonDb('<database_folder>');
+db.init();
 ```
 Where `<database_folder>` is the relative path to the containing folder for your databases.  
 **Examples:**
