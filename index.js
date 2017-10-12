@@ -141,7 +141,7 @@ module.exports = class {
         }
 
         // resolve or reject
-        if (ret.statusCode == this.codes.OK) {
+        if (ret.statusCode < 100) {
           resolve(ret);
         } else {
           reject(ret);
@@ -349,6 +349,14 @@ module.exports = class {
                           'No table with that name found');
     }
 
+    // if table is emty return emty array
+    if (table.rows.length == 0) {
+      return new Response(this.codes.NONE_FOUND,
+                          'Table empty, nothing to retrieve.',
+                          'Table empty, nothing to retrieve.',
+                          []);
+    }
+
     // Select and return appropriate array
     if (selector == undefined) { // no selector, return all rows
       return new Response(this.codes.OK,
@@ -419,18 +427,32 @@ module.exports = class {
                           'No table with that name found');
     }
 
+    // if table is emty return emty array
+    if (table.rows.length == 0) {
+      return new Response(this.codes.NONE_FOUND,
+                          'Table empty, nothing to delete.',
+                          'Table empty, nothing to delete.',
+                          []);
+    }
+
     // Select and return appropriate array
+    let res;
     if (typeof selector == 'object') { // remove elements matching selector object
       let deleted = [];
-      for (let i = table.rows.length; i >= 0; i--) {
+      for (let i = table.rows.length-1; i >= 0; i--) {
         let del = true;
         for (let key in selector) {
           if (!table.rows[i].hasOwnProperty(key)) {del = false; break;}
           if (table.rows[i][key] != selector[key]) {del = false; break;}
         }
-        if (del) deleted.concat(table.rows.splice(i,1));
+        if (del) {
+          let item = table.rows.splice(i,1);
+          deleted = deleted.concat(item);
+          console.log(item, deleted);
+        }
       }
-      return new Response(this.codes.OK,
+      console.log('deleted',deleted);
+      res = new Response(this.codes.OK,
                           'Deleted elements matching provided object.',
                           'Deleted matching rows.',
                           deleted);
@@ -438,20 +460,29 @@ module.exports = class {
       let resource;
       try {
         let deleted = [];
-        for (let i = table.rows.length; i >= 0; i--) {
-          let del = true;
-          if (selector(table.rows[i])) deleted.concat(table.rows.splice(i,1));
+        for (let i = table.rows.length-1; i >= 0; i--) {
+          if (selector(table.rows[i])) {
+            let item = table.rows.splice(i,1);
+            deleted = deleted.concat(item);
+          }
         }
-        return new Response(this.codes.OK,
+        res = new Response(this.codes.OK,
                             'Deleted elements matching provided function.',
                             'Deleted matching rows.',
                             deleted);
       } catch (e) {
-        return new Response(this.codes.U_INVALID_SELECTOR,
+        res = new Response(this.codes.U_INVALID_SELECTOR,
                             'Error in selector function.\n'+e,
                             'There seems to be somthing worong with your selector methud.');
       }
     }
+
+    // save table
+    let data = JSON.stringify(dbContent);
+
+    fs.writeFileSync(file, data);
+
+    return res;
 
   }
 
