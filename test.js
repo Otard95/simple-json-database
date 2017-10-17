@@ -14,9 +14,7 @@ class Item {
 
 }
 
-const JSONDB = require('./index.js');
-const db = new JSONDB('sJsonDB_local');
-db.init();
+const db = require('./index.js')('sJsonDB_local');
 console.log('init passed\n\n');
 
 let localDB = [];
