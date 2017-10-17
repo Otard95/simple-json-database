@@ -11,7 +11,7 @@ const Table     = require('./bin/table.js');
 const util      = require('./bin/util.js');
 const Response  = require('./bin/response.js');
 
-module.exports = class {
+class simple_json_database {
 
   constructor(dbLocation /* the folder to contain the json databases(relative path) */) {
     this.baseDir = path.resolve(process.cwd(), dbLocation);
@@ -485,5 +485,10 @@ module.exports = class {
     return res;
 
   }
+}
 
+module.exports = function(dbLocation) {
+  let r = new simple_json_database(dbLocation);
+  r.init();
+  return r;
 };
