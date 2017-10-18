@@ -461,7 +461,7 @@ class simple_json_database {
       try {
         let deleted = [];
         for (let i = table.rows.length-1; i >= 0; i--) {
-          if (selector(table.rows[i])) {
+          if (selector(table.rows[i], i)) {
             let item = table.rows.splice(i,1);
             deleted = deleted.concat(item);
           }
