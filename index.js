@@ -532,8 +532,9 @@ class simple_json_database {
 
 }
 
-module.exports = function(dbLocation) {
-  let r = new simple_json_database(dbLocation);
+module.exports = function(dbLocation,
+                          saveFormated /* optional */) {
+  let r = new simple_json_database(dbLocation, saveFormated);
   r.init();
   return r;
 };

@@ -92,8 +92,10 @@ function testDelete () {
     db.execute('select', 'testDB', 'testTable', {a:4}).then((res) => {
       if (res.res.length == 0) {
         console.log('Test delete 1.1 passed | object no longer in database');
+        testDropTable();
       } else {
         console.log('Test delete 1.1 failed | object still there');
+        testDropTable();
       }
     }).catch((err) => {
       console.log('Test delete failed | select failed');
@@ -101,6 +103,25 @@ function testDelete () {
   }).catch((err) => {
     console.log('Test delete failed | ', err);
   });
+}
+
+function testDropTable() {
+  console.log('Drop table test.');
+  db.execute('dropTable', 'testDB', 'testTable')
+    .then((res) => {
+      db.execute('select', 'testDB', 'testTable')
+        .then((res) => {
+          console.log('Test drop table failed | select status OK');
+        }).catch((err) => {
+          if (err.statusCode == db.codes.U_TABLE_NOT_FOUND) {
+            console.log('Test drop table passed | table not found');
+          } else {
+            console.log('Tetst drop table failed | unexpected error:\n', err);
+          }
+        });
+    }).catch((err) => {
+      console.log('Test drop table failed | ', err);
+    });
 }
 
 testCreateDB();
