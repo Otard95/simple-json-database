@@ -13,10 +13,13 @@ const Response  = require('./bin/response.js');
 
 class simple_json_database {
 
-  constructor(dbLocation /* the folder to contain the json databases(relative path) */) {
+  constructor(dbLocation /* the folder to contain the json databases(relative path) */,
+              saveFormated /* default = false */) {
+    if (saveFormated == undefined) saveFormated = false;
     this.baseDir = path.resolve(process.cwd(), dbLocation);
     this.fileLock = {};
     this.codes = require('./bin/status_codes.js');
+    this.saveFormated = saveFormated;
   }
 
   init () {
@@ -136,6 +139,9 @@ class simple_json_database {
           case 'delete':
             ret = this._delete(db, tabel, obj);
             break;
+          case 'dropTable':
+            ret = this._dropTable(db, tabel, obj);
+            break;
           default:
             throw 'There is no opperation \''+ opperation +'\'.';
         }
@@ -234,13 +240,51 @@ class simple_json_database {
     dbContent[tableName] = new Table(template);
 
     // save to file
-    let data = JSON.stringify(dbContent);
+    let data = JSON.stringify(dbContent, null, (this.saveFormated ? undefined : '\t'));
 
     fs.writeFileSync(file, data);
 
     return new Response(this.codes.OK,
                         'New table \''+tableName+'\' created in \''+db+'\'("'+file+'")',
                         'Table created.');
+  }
+
+  // Synchronous opperation on locked database(.json)
+  // this will atempt to remove the entire table
+  _dropTable(db, tableName, obj) {
+
+    let file = path.resolve(this.baseDir, db + '.json');
+
+    // make sure database(.json) exists
+    let exists = fs.existsSync(file);
+    if (!exists)
+      return new Response(this.codes.U_DATABASE_NOT_FOUND,
+                          '"'+file+'" doesn\'t exist.\n'+new Error().stack,
+                          'No database with that name.');
+
+    // get the database
+    let dbContent = JSON.parse(fs.readFileSync(file, 'utf8'));
+
+    // make sure tabe exist
+    let table = dbContent[tableName];
+    if (!table)
+      return new Response(this.codes.U_TABLE_NOT_FOUND,
+                          'Table \''+tableName+'\' doesn\'t exits.\n'+new Error().stack,
+                          'No table with that name found');
+
+    console.log(dbContent);
+    delete dbContent[tableName];
+    console.log(dbContent);
+
+    // save to file
+    let data = JSON.stringify(dbContent, null, (this.saveFormated ? undefined : '\t'));
+
+    fs.writeFileSync(file, data);
+
+    return new Response(this.codes.OK,
+                        'Table \''+tableName+'\' removed from "'+file+'"',
+                        'Table dropped');
+
   }
 
   // Synchronous opperation on locked database(.json)
@@ -303,7 +347,7 @@ class simple_json_database {
     table.rows.push(obj);
 
     // save to file
-    let data = JSON.stringify(dbContent);
+    let data = JSON.stringify(dbContent, null, (this.saveFormated ? undefined : '\t'));
 
     fs.writeFileSync(file, data);
 
@@ -478,13 +522,14 @@ class simple_json_database {
     }
 
     // save table
-    let data = JSON.stringify(dbContent);
+    let data = JSON.stringify(dbContent, null, (this.saveFormated ? undefined : '\t'));
 
     fs.writeFileSync(file, data);
 
     return res;
 
   }
+
 }
 
 module.exports = function(dbLocation) {
