@@ -367,7 +367,7 @@ class simple_json_database {
     // Check that selector is of valid type.
     if (!(typeof selector == 'object' ||
           typeof selector == 'function' ||
-          selector == undefined)) {
+          !selector) || Array.isArray(selector)) {
       return new Response(this.codes.U_INVALID_SELECTOR,
                           'The selector was type: ' + Array.isArray(selector) ? 'array' : typeof selector +
                           ', but expected: [<object> | <function> | <undefined>]\n' + new Error().stack,
@@ -444,7 +444,8 @@ class simple_json_database {
 
     // Check that selector is of valid type.
     if (!(typeof selector == 'object' ||
-          typeof selector == 'function') ) {
+          typeof selector == 'function') ||
+          Array.isArray(selector) ) {
       return new Response(this.codes.U_INVALID_SELECTOR,
                           'The selector was type: ' + Array.isArray(selector) ? 'array' : typeof selector +
                           ', but expected: [<object> | <function>]\n' + new Error().stack,
@@ -530,7 +531,19 @@ class simple_json_database {
   _update (db, tableName, selector, update) {
 
     // Check that selector is of valid type.
-    if (typeof selector == 'function') {
+    if (!(typeof selector == 'object' ||
+          typeof selector == 'function') ||
+          Array.isArray(selector)) {
+      return new Response(this.codes.U_INVALID_SELECTOR,
+                          'The selector was type: ' + Array.isArray(selector) ? 'array' : typeof selector +
+                          ', but expected: [<object> | <function>]\n' + new Error().stack,
+                          'Selector was wrong type.');
+    }
+
+    // Check that 'update' is of valid type.
+    if (!(typeof selector == 'object' ||
+          typeof selector == 'function') ||
+          Array.isArray(selector)) {
       return new Response(this.codes.U_INVALID_SELECTOR,
                           'The selector was type: ' + Array.isArray(selector) ? 'array' : typeof selector +
                           ', but expected: [<object> | <function>]\n' + new Error().stack,
@@ -578,8 +591,12 @@ class simple_json_database {
         }
 
         if (match) {
-          for (let key in update) {
-            item[key] = update[key];
+          if (typeof update == 'object') {
+            for (let key in update) {
+              item[key] = update[key];
+            }
+          } else {
+            update(item);
           }
           edited.push(item);
         }
@@ -594,7 +611,13 @@ class simple_json_database {
         let edited = [];
         table.rows.forEach((item, i, arr) => {
           if (selector(item, i, table.rows)){
-            update(item);
+            if (typeof update == 'object') {
+              for (let key in update) {
+                item[key] = update[key];
+              }
+            } else {
+              update(item);
+            }
             edited.push(item);
           }
         });

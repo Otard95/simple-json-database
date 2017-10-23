@@ -82,7 +82,10 @@ function testSelect () {
 function testUpdateItem() {
   console.log('Update test');
   let selector = {a: 4};
-  let update = {b: 20};
+  let update = (item) => {
+    item.b = 20;
+  };
+  //let update = {b: 20};
   db.execute('update', 'testDB', 'testTable', selector, update)
     .then((res) => {
       if (res.statusCode == db.codes.NONE_FOUND) {
