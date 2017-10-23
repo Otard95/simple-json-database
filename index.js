@@ -275,9 +275,9 @@ class simple_json_database {
                           'Table \''+tableName+'\' doesn\'t exits.\n'+new Error().stack,
                           'No table with that name found');
 
-    console.log(dbContent);
+    //console.log(dbContent);
     delete dbContent[tableName];
-    console.log(dbContent);
+    //console.log(dbContent);
 
     // save to file
     let data = JSON.stringify(dbContent, null, (this.saveFormated ? undefined : '\t'));
