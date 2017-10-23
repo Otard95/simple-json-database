@@ -73,10 +73,41 @@ function testSelect () {
       console.log('Test select failed | no match');
     }
     console.log('\n\n');
-    testDelete();
+    testUpdateItem();
   }).catch((err) => {
     console.log('Test select failed | ', err.members);
   });
+}
+
+function testUpdateItem() {
+  console.log('Update test');
+  let selector = {a: 4};
+  let update = {b: 20};
+  db.execute('update', 'testDB', 'testTable', selector, update)
+    .then((res) => {
+      if (res.statusCode == db.codes.NONE_FOUND) {
+        console.log('unexpected empty table');
+      } else if (localDB[0].b != res.res[0].b) {
+        localDB[0].b = 20;
+        console.log('Update table test | update made checking.');
+
+        db.execute('select', 'testDB', 'testTable', {a:4})
+          .then((res) => {
+            let resText = JSON.stringify(res.res[0]);
+            let localText = JSON.stringify(localDB[0]);
+            if ( resText == localText ) {
+              console.log('Update test passed');
+              testDelete();
+            } else {
+              console.log('Update failed | object missmatch :',res.res[0],localDB[0]);
+            }
+          }).catch((err) => {
+            console.log('unexpected error: ', err);
+          });
+      }
+    }).catch ((err) => {
+      console.log('unexpected error: ', err);
+    });
 }
 
 function testDelete () {
