@@ -243,7 +243,7 @@ class simple_json_database {
     dbContent[tableName] = new Table(template);
 
     // save to file
-    let data = JSON.stringify(dbContent, null, (this.saveFormated ? undefined : '\t'));
+    let data = JSON.stringify(dbContent, null, (this.saveFormated ? '\t' : undefined));
 
     fs.writeFileSync(file, data);
 
@@ -280,7 +280,7 @@ class simple_json_database {
     //console.log(dbContent);
 
     // save to file
-    let data = JSON.stringify(dbContent, null, (this.saveFormated ? undefined : '\t'));
+    let data = JSON.stringify(dbContent, null, (this.saveFormated ? '\t' : undefined));
 
     fs.writeFileSync(file, data);
 
@@ -350,7 +350,7 @@ class simple_json_database {
     table.rows.push(obj);
 
     // save to file
-    let data = JSON.stringify(dbContent, null, (this.saveFormated ? undefined : '\t'));
+    let data = JSON.stringify(dbContent, null, (this.saveFormated ? '\t' : undefined));
 
     fs.writeFileSync(file, data);
 
@@ -518,7 +518,7 @@ class simple_json_database {
     }
 
     // save table
-    let data = JSON.stringify(dbContent, null, (this.saveFormated ? undefined : '\t'));
+    let data = JSON.stringify(dbContent, null, (this.saveFormated ? '\t' : undefined));
 
     fs.writeFileSync(file, data);
 
@@ -633,7 +633,7 @@ class simple_json_database {
     }
 
     // save table
-    let data = JSON.stringify(dbContent, null, (this.saveFormated ? undefined : '\t'));
+    let data = JSON.stringify(dbContent, null, (this.saveFormated ? '\t' : undefined));
 
     fs.writeFileSync(file, data);
 
