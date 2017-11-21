@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Otard95/simple_json_database.git"
+    "url": "git+https://github.com/Otard95/simple-json-database.git"
   },
   "keywords": [
     "NodeJs",
@@ -18,7 +18,7 @@
   "author": "Stian Myklebostad",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Otard95/simple_json_database/issues"
+    "url": "https://github.com/Otard95/simple-json-database/issues"
   },
-  "homepage": "https://github.com/Otard95/simple_json_database#readme"
+  "homepage": "https://github.com/Otard95/simple-json-database#readme"
 }
