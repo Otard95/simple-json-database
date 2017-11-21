@@ -1,15 +1,15 @@
-# simple_json_database
+# simple-json-database
 A simple node.js database using json to store you data.
 
 ## Installation
 ```
-npm install github:Otard95/simple_json_database
+npm install github:Otard95/simple-json-database
 ```
 
 ## How to use
 **Simple setup**
 ```javascript
-const sJsonDb = require('simple_json_database')('<database_folder>');
+const sJsonDb = require('simple-json-database')('<database_folder>');
 ```
 Where `<database_folder>` is the relative path to the containing folder for your databases.  
 **Examples:**
@@ -19,10 +19,8 @@ Where `<database_folder>` is the relative path to the containing folder for your
 **Create a database**
 ```javascript
 db.createDB('myDatabase').then( (res) => {
-  console.log(res); // This line is optional
   // Your code if you need it
 }).catch( (err) => {
-  console.log(err); // This line is optional
   // Your code if you need it
 });
 ```
