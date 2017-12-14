@@ -1,5 +1,5 @@
 # simple-json-database
-A simple node.js database using json to store you data.
+A simple node.js database using JSON to store your data.
 
 ## Installation
 ```
@@ -9,9 +9,10 @@ npm install github:Otard95/simple-json-database
 ## How to use
 **Simple setup**
 ```javascript
-const sJsonDb = require('simple-json-database')('<database_folder>');
+const db = require('simple-json-database')('<database_folder>'[, save formatted]);
 ```
 Where `<database_folder>` is the relative path to the containing folder for your databases.  
+The `save formatted` option can be set to `true` or `false`, or it can be ignored. The default is `false`. If set to `true` any databases created will be human-readable.  
 **Examples:**
 * `'JsonDB'` -- Will create(if not allready existing) a folder `JsonDB` in your projects directory.
 * `'./'` -- Will save your databases directly in your projects directory.
@@ -19,9 +20,9 @@ Where `<database_folder>` is the relative path to the containing folder for your
 **Create a database**
 ```javascript
 db.createDB('myDatabase').then( (res) => {
-  // Your code if you need it
+  // Any code you would like to run on success
 }).catch( (err) => {
-  // Your code if you need it
+  // Any code you need if it fails
 });
 ```
 This will atempt to crate a new database, or the file `myDatabase.json`, in the folder specified when you initialized `db`.
