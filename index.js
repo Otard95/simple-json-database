@@ -92,7 +92,7 @@ class simple_json_database {
       }
 
       // set up data and options
-      let data = '{\n\n}';
+      let data = '{}';
       let options = {};
       options.flag = 'wx';
 
@@ -131,7 +131,7 @@ class simple_json_database {
             ret = this._createTable(db, tabel, sel);
             break;
           case 'dropTable':
-            ret = this._dropTable(db, tabel, sel);
+            ret = this._dropTable(db, tabel);
             break;
           case 'insert':
             ret = this._insert(db, tabel, sel);
@@ -217,6 +217,14 @@ class simple_json_database {
   // this will atempt to crate a new table in a database
   _createTable (db, tableName, template) {
     ///  return a Response object
+
+    if (typeof template !== 'object' || Array.isArray(template)) {
+      return new Response(this.codes.U_INVALID_SELECTOR,
+                          'Invalid template\nTemplate was type \''+
+                          (Array.isArray(template) ? 'array' : typeof template)+
+                          '\'. Expected \'object\'',
+                          'The pamplate need to be a object');
+    }
 
     let file = path.resolve(this.baseDir, db + '.json');
 
@@ -365,9 +373,10 @@ class simple_json_database {
     //  return a Response object
 
     // Check that selector is of valid type.
-    if (!(typeof selector == 'object' ||
-          typeof selector == 'function' ||
-          !selector) || Array.isArray(selector)) {
+    if (Array.isArray(selector) ||
+        !(typeof selector === 'object' ||
+        typeof selector === 'function' ||
+        selector === undefined)) {
       return new Response(this.codes.U_INVALID_SELECTOR,
                           'The selector was type: ' + Array.isArray(selector) ? 'array' : typeof selector +
                           ', but expected: [<object> | <function> | <undefined>]\n' + new Error().stack,
@@ -404,7 +413,7 @@ class simple_json_database {
     }
 
     // Select and return appropriate array
-    if (selector == undefined) { // no selector, return all rows
+    if (selector === undefined) { // no selector, return all rows
       return new Response(this.codes.OK,
                           'Returned all rows in table \''+tableName+'\'',
                           'Returned all rows.',
@@ -443,9 +452,9 @@ class simple_json_database {
   _delete (db, tableName, selector) {
 
     // Check that selector is of valid type.
-    if (!(typeof selector == 'object' ||
-          typeof selector == 'function') ||
-          Array.isArray(selector) ) {
+    if (Array.isArray(selector) ||
+        !(typeof selector === 'object' ||
+        typeof selector === 'function')) {
       return new Response(this.codes.U_INVALID_SELECTOR,
                           'The selector was type: ' + Array.isArray(selector) ? 'array' : typeof selector +
                           ', but expected: [<object> | <function>]\n' + new Error().stack,
@@ -531,9 +540,9 @@ class simple_json_database {
   _update (db, tableName, selector, update) {
 
     // Check that selector is of valid type.
-    if (!(typeof selector == 'object' ||
-          typeof selector == 'function') ||
-          Array.isArray(selector)) {
+    if (Array.isArray(selector) ||
+        !(typeof selector === 'object' ||
+        typeof selector === 'function')) {
       return new Response(this.codes.U_INVALID_SELECTOR,
                           'The selector was type: ' + Array.isArray(selector) ? 'array' : typeof selector +
                           ', but expected: [<object> | <function>]\n' + new Error().stack,
@@ -587,7 +596,7 @@ class simple_json_database {
         let match = true;
         for (let key in selector) {
           if (!item.hasOwnProperty(key)) { match  = false; break;}
-          if (item[key] != selector[key]) { match = false; break;}
+          if (item[key] !== selector[key]) { match = false; break;}
         }
 
         if (match) {
@@ -609,18 +618,20 @@ class simple_json_database {
     } else {
       try {
         let edited = [];
-        table.rows.forEach((item, i, arr) => {
-          if (selector(item, i, table.rows)){
-            if (typeof update == 'object') {
-              for (let key in update) {
-                item[key] = update[key];
-              }
-            } else {
-              update(item);
+        let matches = table.rows.filter(selector);
+        matches.forEach((item, i, arr) => {
+
+          if (typeof update === 'object') {
+            for (let key in update) {
+              item[key] = update[key];
             }
-            edited.push(item);
+          } else {
+            update(item);
           }
+          edited.push(item);
+
         });
+
         res = new Response(this.codes.OK,
                             'Deleted elements matching provided function.',
                             'Deleted matching rows.',
