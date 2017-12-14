@@ -12,34 +12,21 @@ var util = {
   // Returns false on mismatch and true on match
   matchTemplate: (obj, tem) => {
 
-    if (Array.isArray(tem)) {
-
-      let match = true;
-      obj.forEach((item, i, arr) => {
-
-        if (match) {
-
-          if (typeof item != typeof tem[0]) {
-            match = false;
-            //console.log('in arr type missmatch');
-          } else if (typeof item == 'object') {
-            let clone = JSON.parse(JSON.stringify(tem[0]));
-            //console.log(item, clone);
-            match = util.matchTemplate(item, clone);
-            // if (!match) {
-            //   console.log('obj in arr missmatch');
-            // }
-          }
-
+    if (typeof obj !== typeof tem ||
+        Array.isArray(obj) !== Array.isArray(tem)) {
+          return false;
         }
 
-      });
-
-      return match;
+    if (Array.isArray(tem)) {
+      /*
+       * ## Since arrays might have different lengths and there's not one
+       * ## right way to use them we don't check this.
+       */
+      return true;
 
     } else {
 
-      for (var key in obj) { // for every key on obj
+      for (var key in obj) { // for every key in obj
 
         if (key != 'equals') { // this is a methud to check if a identical element
                                // is allready in the table, its not a value to be saved
