@@ -10,6 +10,4 @@ module.exports = class {
     this.res = res;
   }
 
-
-
 };
